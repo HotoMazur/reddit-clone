@@ -1,0 +1,21 @@
+<configuration>
+    <!-- Console appender configuration -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set the root logger to INFO or WARN -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Set specific logger levels to reduce verbosity -->
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.apache.kafka.clients" level="WARN"/>
+    <logger name="org.apache.kafka.common" level="WARN"/>
+    <logger name="org.apache.kafka.common.network" level="WARN"/>
+
+    <!-- You can add more specific logger settings here as needed -->
+</configuration>

@@ -1,0 +1,97 @@
+# This setup allows you to both connect from within the docker-compose context as well as from services running on your local
+# machine but not as part of the docker-compose setup. Any client connecting to the broker from the outside can connect to
+# localhost:9092 while services running as part of the docker-compose connect to broker:9093.
+#
+# To access kafka-ui: http://localhost:7777
+#
+# I hope this helps someone out there! :)
+
+version: '3'
+networks:
+  local-kafka:
+    driver: bridge
+
+services:
+  app-prod:
+    build: .
+    container_name: app
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8081:8081"
+    depends_on:
+      - zookeeper
+      - broker
+      - reddit-db
+    networks:
+      - local-kafka
+    profiles:
+      - prod
+
+  reddit-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    profiles:
+      - prod
+      - dev
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest-ubi8.arm64
+    container_name: zookeeper
+    networks:
+      - local-kafka
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    profiles:
+      - dev
+      - prod
+
+  broker:
+    image: confluentinc/cp-kafka:latest-ubi8.arm64
+    container_name: broker
+    networks:
+      - local-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LISTENERS: PLAINTEXT_INTERNAL://0.0.0.0:29092,PLAINTEXT_C://0.0.0.0:9093,PLAINTEXT_L://0.0.0.0:9092,
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://broker:29092,PLAINTEXT_L://localhost:9092,PLAINTEXT_C://broker:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_L:PLAINTEXT,PLAINTEXT_C:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+    profiles:
+      - dev
+      - prod
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    networks:
+      - local-kafka
+    depends_on:
+      - broker
+    ports:
+      - "7777:8080"
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=broker
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=broker:9093
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    profiles:
+      - dev
+      - prod
