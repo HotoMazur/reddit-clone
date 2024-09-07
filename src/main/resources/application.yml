@@ -4,11 +4,9 @@ spring:
   profiles:
     active: dev
 
-  datasource:
-    url: jdbc:postgresql://reddit-db/postgres
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:changelog/changelog-master.xml
+
   jpa:
     hibernate:
       ddl-auto: update

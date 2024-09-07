@@ -8,7 +8,7 @@
 
 version: '3'
 networks:
-  local-kafka:
+  app-network:
     driver: bridge
 
 services:
@@ -24,7 +24,7 @@ services:
       - broker
       - reddit-db
     networks:
-      - local-kafka
+      - app-network
     profiles:
       - prod
 
@@ -40,13 +40,15 @@ services:
     profiles:
       - prod
       - dev
+    networks:
+      - app-network
 
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest-ubi8.arm64
     container_name: zookeeper
     networks:
-      - local-kafka
+      - app-network
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -58,7 +60,7 @@ services:
     image: confluentinc/cp-kafka:latest-ubi8.arm64
     container_name: broker
     networks:
-      - local-kafka
+      - app-network
     ports:
       - "9092:9092"
       - "9093:9093"
@@ -82,7 +84,7 @@ services:
     image: provectuslabs/kafka-ui
     container_name: kafka-ui
     networks:
-      - local-kafka
+      - app-network
     depends_on:
       - broker
     ports:
