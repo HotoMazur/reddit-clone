@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="2" author="dmytro.mazurev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE users (
+                                     id UUID DEFAULT GEN_RANDOM_UUID() PRIMARY KEY,
+                                     username VARCHAR(255) NOT NULL UNIQUE,
+                                     password VARCHAR(255) NOT NULL,
+                                     email VARCHAR(255) NOT NULL UNIQUE,
+                                     create_at TIMESTAMP NOT NULL,
+                                     enabled BOOLEAN NOT NULL ,
+                                     bio VARCHAR(255),
+                                     status BOOLEAN NOT NULL
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
